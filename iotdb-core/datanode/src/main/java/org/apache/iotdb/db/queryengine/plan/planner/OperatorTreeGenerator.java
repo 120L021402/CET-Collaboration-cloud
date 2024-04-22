@@ -296,7 +296,7 @@ public class OperatorTreeGenerator extends PlanVisitor<Operator, LocalExecutionP
         context.getAllSensors(seriesPath.getDevice(), seriesPath.getMeasurement()));
     seriesScanOptionsBuilder.withLimit(node.getLimit());
     seriesScanOptionsBuilder.withOffset(node.getOffset());
-
+//    seriesScanOptionsBuilder.withOffset(1L);//修改
     OperatorContext operatorContext =
         context
             .getDriverContext()

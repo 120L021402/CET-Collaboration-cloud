@@ -102,6 +102,7 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.layered.TFramedTransport;
+import org.apache.iotdb.db.protocol.thrift.impl.ClientRPCServiceImpl;
 
 /**
  * QueryExecution stores all the status of a query which is being prepared or running inside the MPP
@@ -159,7 +160,7 @@ public class QueryExecution implements IQueryExecution {
       QueryPlanCostMetricSet.getInstance();
   private static final PerformanceOverviewMetrics PERFORMANCE_OVERVIEW_METRICS =
       PerformanceOverviewMetrics.getInstance();
-  public boolean ServerisOpen = false;//服务器开启标志
+
 
   @SuppressWarnings("squid:S107")
   public QueryExecution(
@@ -263,14 +264,19 @@ public class QueryExecution implements IQueryExecution {
 //        transport.close();
 //      }
 //    }
-    Thread thread_send = new Thread(new SendRunnable());//发送数据测试
-    thread_send.start();
-    Thread thread_receive = new Thread(new ReceiveRunnable());//接收数据测试
-    thread_receive.start();
+//    Thread thread_send = new Thread(new SendRunnable());//发送数据测试
+//    thread_send.start();
+//    Thread thread_receive = new Thread(new ReceiveRunnable());//接收数据测试
+//    thread_receive.start();
+//    try {
+//          thread_send.join();
+////          thread_receive.join();
+//    } catch (InterruptedException e) {
+//        throw new RuntimeException(e);
+//    }
 
 
-
-    if (skipExecute()) {
+      if (skipExecute()) {
       logger.debug("[SkipExecute]");
       if (context.getQueryType() == QueryType.WRITE && analysis.isFailed()) {
         stateMachine.transitionToFailed(analysis.getFailStatus());
@@ -846,18 +852,22 @@ public class QueryExecution implements IQueryExecution {
 //    server.start();
 //  }
 //}
-class SendRunnable implements Runnable {
-  @Override
-  public void run() {
-    SendTsBlock send=new SendTsBlock();
-    send.send();
-
-  }
-}
-class ReceiveRunnable implements Runnable {
-  @Override
-  public void run() {
-    ReceiveTsBlock receive=new ReceiveTsBlock();
-    receive.receive();
-  }
-}
+//class SendRunnable implements Runnable {
+//  @Override
+//  public void run() {
+////    SendTsBlock send=new SendTsBlock();
+////    send.send();
+//    String sql="SELECT * FROM root.ln.wf02.wt02";
+//    ClientRPCServiceImpl clientRPCService = new ClientRPCServiceImpl();
+//    clientRPCService.excuteIdentitySql(sql);
+//
+//
+//  }
+//}
+//class ReceiveRunnable implements Runnable {
+//  @Override
+//  public void run() {
+//    ReceiveTsBlock receive=new ReceiveTsBlock();
+//    receive.receive();
+//  }
+//}

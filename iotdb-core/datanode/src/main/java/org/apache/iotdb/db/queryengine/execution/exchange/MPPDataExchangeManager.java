@@ -243,7 +243,7 @@ public class MPPDataExchangeManager implements IMPPDataExchangeManager {
           return;
         }
 
-        sourceHandle.updatePendingDataBlockInfo(e.getStartSequenceId(), e.getBlockSizes());
+          sourceHandle.updatePendingDataBlockInfo(e.getStartSequenceId(), e.getBlockSizes());
       } finally {
         DATA_EXCHANGE_COST_METRICS.recordDataExchangeCost(
             SEND_NEW_DATA_BLOCK_EVENT_TASK_SERVER, System.nanoTime() - startTime);
@@ -678,7 +678,7 @@ public class MPPDataExchangeManager implements IMPPDataExchangeManager {
             driverContext.getFragmentInstanceContext(), driverContext::failed));
   }
 
-  private ISinkChannel createSinkChannel(
+  public ISinkChannel createSinkChannel(
       TFragmentInstanceId localFragmentInstanceId,
       TEndPoint remoteEndpoint,
       TFragmentInstanceId remoteFragmentInstanceId,

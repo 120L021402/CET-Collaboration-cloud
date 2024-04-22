@@ -248,6 +248,9 @@ public class FragmentInstanceContext extends QueryContext {
   }
 
   public void finished() {
+    if(stateMachine==null){
+      return;
+    }
     stateMachine.finished();
   }
 

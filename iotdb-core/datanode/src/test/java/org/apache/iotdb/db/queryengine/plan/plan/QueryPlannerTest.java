@@ -25,16 +25,25 @@ import org.apache.iotdb.commons.client.IClientManager;
 import org.apache.iotdb.commons.client.async.AsyncDataNodeInternalServiceClient;
 import org.apache.iotdb.commons.client.sync.SyncDataNodeInternalServiceClient;
 import org.apache.iotdb.commons.concurrent.IoTDBThreadPoolFactory;
+import org.apache.iotdb.db.queryengine.common.DataNodeEndPoints;
 import org.apache.iotdb.db.queryengine.common.MPPQueryContext;
 import org.apache.iotdb.db.queryengine.common.QueryId;
 import org.apache.iotdb.db.queryengine.common.SessionInfo;
+import org.apache.iotdb.db.queryengine.plan.Coordinator;
+import org.apache.iotdb.db.queryengine.plan.analyze.ClusterPartitionFetcher;
 import org.apache.iotdb.db.queryengine.plan.analyze.FakePartitionFetcherImpl;
 import org.apache.iotdb.db.queryengine.plan.analyze.FakeSchemaFetcherImpl;
+import org.apache.iotdb.db.queryengine.plan.analyze.IPartitionFetcher;
+import org.apache.iotdb.db.queryengine.plan.analyze.schema.ClusterSchemaFetcher;
+import org.apache.iotdb.db.queryengine.plan.analyze.schema.ISchemaFetcher;
+import org.apache.iotdb.db.queryengine.plan.execution.ExecutionResult;
+import org.apache.iotdb.db.queryengine.plan.execution.IQueryExecution;
 import org.apache.iotdb.db.queryengine.plan.execution.QueryExecution;
 import org.apache.iotdb.db.queryengine.plan.parser.StatementGenerator;
 import org.apache.iotdb.db.queryengine.plan.planner.plan.DistributedQueryPlan;
 import org.apache.iotdb.db.queryengine.plan.planner.plan.node.PlanNodeUtil;
 import org.apache.iotdb.db.queryengine.plan.statement.Statement;
+
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -50,6 +59,10 @@ public class QueryPlannerTest {
 
   private static IClientManager<TEndPoint, AsyncDataNodeInternalServiceClient>
       asyncInternalServiceClientManager;
+  private static final Coordinator COORDINATOR = Coordinator.getInstance();
+  private final IPartitionFetcher partitionFetcher = ClusterPartitionFetcher.getInstance();
+  private final ISchemaFetcher schemaFetcher = ClusterSchemaFetcher.getInstance();
+
 
   @BeforeClass
   public static void setUp() {
@@ -72,35 +85,57 @@ public class QueryPlannerTest {
   @Test
   public void testSqlToDistributedPlan() {
 
-    String querySql = "SELECT d1.*, d333.s1 FROM root.sg LIMIT 10";
+//    String querySql = "SELECT * FROM root.ln.wf02.wt02";
+        String querySql = "SELECT * FROM root.sg LIMIT 10";
+//    String querySql = "SELECT d1.*, d333.s1 FROM root.sg LIMIT 10";
 
     Statement stmt = StatementGenerator.createStatement(querySql, ZoneId.systemDefault());
 
-    QueryExecution queryExecution =
-        new QueryExecution(
-            stmt,
-            new MPPQueryContext(
-                querySql,
-                new QueryId("query1"),
-                new SessionInfo(1L, "fakeUsername", "fakeZoneId"),
-                new TEndPoint(),
-                new TEndPoint()),
-            IoTDBThreadPoolFactory.newSingleThreadExecutor("test_query"),
-            IoTDBThreadPoolFactory.newSingleThreadExecutor("test_write_operation"),
-            IoTDBThreadPoolFactory.newSingleThreadScheduledExecutor("test_query_scheduled"),
-            new FakePartitionFetcherImpl(),
-            new FakeSchemaFetcherImpl(),
-            syncInternalServiceClientManager,
-            asyncInternalServiceClientManager);
-    queryExecution.doLogicalPlan();
-    System.out.printf("SQL: %s%n%n", querySql);
-    System.out.println("===== Step 1: Logical Plan =====");
-    System.out.println(PlanNodeUtil.nodeToString(queryExecution.getLogicalPlan().getRootNode()));
+//    MPPQueryContext mppQueryContext= new MPPQueryContext(
+//            querySql,
+//            new QueryId("query1"),
+//            new SessionInfo(1L, "fakeUsername", "fakeZoneId"),
+//            new TEndPoint(),
+//            new TEndPoint());
+//    MPPQueryContext mppQueryContext= new MPPQueryContext(
+//            querySql,
+//            new QueryId("query1"),
+//            new SessionInfo(1L, "fakeUsername", "fakeZoneId"),
+//            DataNodeEndPoints.LOCAL_HOST_DATA_BLOCK_ENDPOINT,
+//            DataNodeEndPoints.LOCAL_HOST_INTERNAL_ENDPOINT);
+//    mppQueryContext.setTimeOut(1000000000);
+//    mppQueryContext.setStartTime(System.currentTimeMillis());
 
-    queryExecution.doDistributedPlan();
-    DistributedQueryPlan distributedQueryPlan = queryExecution.getDistributedPlan();
-
-    System.out.println("===== Step 4: Split Fragment Instance =====");
-    distributedQueryPlan.getInstances().forEach(System.out::println);
+//    QueryExecution queryExecution =
+//        new QueryExecution(
+//            stmt,
+//            mppQueryContext,
+//            IoTDBThreadPoolFactory.newSingleThreadExecutor("test_query"),
+//            IoTDBThreadPoolFactory.newSingleThreadExecutor("test_write_operation"),
+//            IoTDBThreadPoolFactory.newSingleThreadScheduledExecutor("test_query_scheduled"),
+//            new FakePartitionFetcherImpl(),
+//            new FakeSchemaFetcherImpl(),
+//            syncInternalServiceClientManager,
+//            asyncInternalServiceClientManager);
+    ExecutionResult result =
+            COORDINATOR.execute(
+                    stmt,
+                    10086,
+                    new SessionInfo(1L, "fakeUsername", "fakeZoneId"),
+                    querySql,
+                    partitionFetcher,
+                    schemaFetcher,
+                    1000000);
+//    queryExecution.doLogicalPlan();
+//    System.out.printf("SQL: %s%n%n", querySql);
+//    System.out.println("===== Step 1: Logical Plan =====");
+//    System.out.println(PlanNodeUtil.nodeToString(queryExecution.getLogicalPlan().getRootNode()));
+//
+//    queryExecution.doDistributedPlan();
+//    DistributedQueryPlan distributedQueryPlan = queryExecution.getDistributedPlan();
+//
+//    System.out.println("===== Step 4: Split Fragment Instance =====");
+//    distributedQueryPlan.getInstances().forEach(System.out::println);
+//    queryExecution.start();
   }
 }

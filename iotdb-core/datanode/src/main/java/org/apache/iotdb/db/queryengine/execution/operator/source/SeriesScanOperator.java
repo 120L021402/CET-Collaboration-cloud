@@ -39,6 +39,7 @@ public class SeriesScanOperator extends AbstractDataSourceOperator {
 
   private final TsBlockBuilder builder;
   private boolean finished = false;
+  private int valuenum;
 
   public SeriesScanOperator(
       OperatorContext context,
@@ -53,13 +54,16 @@ public class SeriesScanOperator extends AbstractDataSourceOperator {
     this.maxReturnSize =
         Math.min(maxReturnSize, TSFileDescriptor.getInstance().getConfig().getPageSizeInByte());
     this.builder = new TsBlockBuilder(seriesScanUtil.getTsDataTypeList());
+    this.valuenum=0;
   }
 
   @Override
   public TsBlock next() throws Exception {
     if (retainedTsBlock != null) {
+      System.out.println("valuenum:"+valuenum);
       return getResultFromRetainedTsBlock();
     }
+    System.out.println("valuenum:"+valuenum);
     resultTsBlock = builder.build();
     builder.reset();
     return checkTsBlockSizeAndGetResult();
@@ -76,7 +80,7 @@ public class SeriesScanOperator extends AbstractDataSourceOperator {
       // start stopwatch
       long maxRuntime = operatorContext.getMaxRunTime().roundTo(TimeUnit.NANOSECONDS);
       long start = System.nanoTime();
-
+      int num=0;
       // here use do-while to promise doing this at least once
       do {
         /*
@@ -84,11 +88,14 @@ public class SeriesScanOperator extends AbstractDataSourceOperator {
          * 2. consume chunk data secondly
          * 3. consume next file finally
          */
+        num++;
         if (!readPageData() && !readChunkData() && !readFileData()) {
           break;
         }
-      } while (System.nanoTime() - start < maxRuntime && !builder.isFull());
 
+
+      } while (System.nanoTime() - start < maxRuntime && !builder.isFull());
+      System.out.println("num:"+num);
       finished = builder.isEmpty();
 
       return !finished;
@@ -138,7 +145,11 @@ public class SeriesScanOperator extends AbstractDataSourceOperator {
   private boolean readPageData() throws IOException {
     while (seriesScanUtil.hasNextPage()) {
       TsBlock tsBlock = seriesScanUtil.nextPage();
-
+      TimeColumn tsTimeColumn=tsBlock.getTimeColumn();
+      int ValueNum =tsTimeColumn.getPositionCount();
+      valuenum+=ValueNum;
+      System.out.println("value:"+ValueNum);
+//      System.out.println(operatorContext.getInstanceContext());
       if (!isEmpty(tsBlock)) {
         appendToBuilder(tsBlock);
         return true;

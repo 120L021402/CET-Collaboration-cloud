@@ -69,6 +69,7 @@ import org.apache.iotdb.db.protocol.thrift.impl.ClientRPCServiceImpl;
 import org.apache.iotdb.db.protocol.thrift.impl.DataNodeRegionManager;
 import org.apache.iotdb.db.queryengine.execution.exchange.MPPDataExchangeService;
 import org.apache.iotdb.db.queryengine.execution.schedule.DriverScheduler;
+import org.apache.iotdb.db.queryengine.plan.execution.ServerStart;
 import org.apache.iotdb.db.schemaengine.SchemaEngine;
 import org.apache.iotdb.db.schemaengine.template.ClusterTemplateManager;
 import org.apache.iotdb.db.service.metrics.DataNodeMetricsHelper;
@@ -159,6 +160,18 @@ public class DataNode implements DataNodeMBean {
     logger.info("IoTDB-DataNode default charset is: {}", Charset.defaultCharset().displayName());
 
     new DataNodeServerCommandLine().doMain(args);
+//    try {
+//      Thread.sleep(5000);
+//    } catch (InterruptedException e) {
+//      throw new RuntimeException(e);
+//    }
+//    System.out.println("start to test");
+//    //新加
+//    Thread thread_send = new Thread(new testRunnable());//发送数据测试
+//    thread_send.start();
+    //新建thrift服务器
+    Thread serverThread = new Thread(new ServerRunnable());//启动服务器
+    serverThread.start();
   }
 
   protected void doAddNode() {
@@ -956,6 +969,27 @@ public class DataNode implements DataNodeMBean {
     private DataNodeHolder() {
       // Empty constructor
     }
+  }
+//  static class testRunnable implements Runnable {
+//    @Override
+//    public void run() {
+//
+//      String sql1="SELECT * FROM root.ln.wf02.wt02";
+//      String sql2="SELECT * FROM root.ln.wf02.wt02 WHERE timestamp!=4";
+//      ClientRPCServiceImpl clientRPCService = new ClientRPCServiceImpl();
+//      clientRPCService.excuteIdentitySql(sql1);
+//      clientRPCService.excuteIdentitySql(sql2);
+//
+//
+//    }
+//  }
+}
+class ServerRunnable implements Runnable {
+  @Override
+  public void run() {
+    // 创建并启动服务器
+    ServerStart server = new ServerStart();
+    server.start();
   }
 }
 

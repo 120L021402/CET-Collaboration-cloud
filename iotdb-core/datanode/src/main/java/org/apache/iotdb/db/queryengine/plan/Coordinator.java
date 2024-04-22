@@ -97,7 +97,7 @@ public class Coordinator {
     this.scheduledExecutor = getScheduledExecutor();
   }
 
-  private IQueryExecution createQueryExecution(
+  public IQueryExecution createQueryExecution(//修改
       Statement statement,
       MPPQueryContext queryContext,
       IPartitionFetcher partitionFetcher,

@@ -1488,6 +1488,6 @@ public class SeriesScanUtil {
     @Override
     public void setCurSeqFileIndex(QueryDataSource dataSource) {
       curSeqFileIndex = 0;
-    }
+    }//修改
   }
 }
